@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <title>Figma  покажи мне макет в виде данных, пожалуйста?</title>
+    <style>
+      body {
+        text-align: center;
+        margin: 200px 0 0 0;
+        padding: 0;
+      }
+    </style>
+    <script src="config.js"></script>
+    <script type="text/javascript">
+      function FigmaRGBAToHex(rgba) {
+        var {a, b, g, r} = rgba;
+        return `rgba(${r * 255}, ${g * 255}, ${b * 255}, ${a})`;
+      }
+
+      function apiRequest(endpoint) {
+        return fetch('https://api.figma.com/v1' + endpoint, {
+          method: 'GET',
+          headers: { "x-figma-token": config.PERSONAL_ACCESS_TOKEN }
+        }).then(function(response) {
+          return response.json();
+        }).catch(function (error) {
+          return { err: error };
+        });
+      }
+
+      function callFigma() {
+        showSpinner();
+
+        apiRequest('/files/' + config.FILEKEY)
+        .then(function (apiResponse) {
+          hideSpinner();
+          console.log(apiResponse);
+
+          if (apiResponse && apiResponse.thumbnailUrl) {
+            document.querySelector('img').src = apiResponse.thumbnailUrl;
+          }
+          if (apiResponse && apiResponse.name) {
+            document.querySelector('h1').innerHTML = apiResponse.name;
+          }
+          if (apiResponse && apiResponse.document.children["0"].children[1].name) {
+            var height = apiResponse.document.children["0"].children["0"].absoluteBoundingBox.height;
+            var width = apiResponse.document.children["0"].children["0"].absoluteBoundingBox.width;
+            var borderradius = apiResponse.document.children["0"].children["0"].cornerRadius;
+            var textalign = apiResponse.document.children["0"].children["0"].strokeAlign;
+            var fontsize = apiResponse.document.children["0"].children[1].style.fontSize;
+            var fontweight = apiResponse.document.children["0"].children[1].style.fontWeight;
+            var fontfamily = apiResponse.document.children["0"].children[1].style.fontFamily;
+            var bgcolor = apiResponse.document.children["0"].children["0"].fills["0"].color;
+            var textcolor = apiResponse.document.children["0"].children[1].fills["0"].color;
+
+            var css = '.btn { margin: 40px auto; width: '+ width +'px; height: '+ height +'px; line-height: '+ height +'px; text-align:' + textalign.toLowerCase() + '; font-size: ' + fontsize + 'px; font-weight: '+ fontweight +'; font-family: '+fontfamily+'; background-color: '+FigmaRGBAToHex(bgcolor)+'; color: '+FigmaRGBAToHex(textcolor)+'; border-radius: '+borderradius+'px; }'
+
+            var head = document.head || document.getElementsByTagName('head')[0];
+            var style = document.createElement('style');
+
+            style.type = 'text/css';
+            if (style.styleSheet){
+              style.styleSheet.cssText = css;
+            } else {
+              style.appendChild(document.createTextNode(css));
+            }
+
+            head.appendChild(style);
+
+            document.getElementById('btn').style.height = "height";
+            document.getElementById('btn').innerHTML = apiResponse.document.children["0"].children[1].name;
+          }
+        });
+      }
+
+      function showSpinner() {
+        console.log('Работаю...');
+      }
+
+      function hideSpinner() {
+        console.log('Уже всё, возрайдуйтесь!');
+      }
+
+      callFigma();
+    </script>
+  </head>
+  <body>
+    <div class="mw8 center ph3-ns">
+        <article class="pa3 pa5-ns">
+            <h1 class="f3 f2-m f1-l">Работаю...</h1>
+            <p>Как выглядит файл:</p>
+            <img class="w-100" src="" width="200">
+            <div class="btn" id="btn"></div>
+        </article>
+    </div>
+  </body>
+</html>
