@@ -13,3 +13,4 @@
 - https://github.com/figma/figma-api-demo
 - http://www.figma.com/developers/docs
 - https://github.com/pierrelevaillant/Figma-Platform-Playground
+- https://github.com/PavelLaptev/JSON-from-Figma
